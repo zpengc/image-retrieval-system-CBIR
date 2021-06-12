@@ -26,7 +26,9 @@ UKBench DataSet [click here to download](https://archive.org/details/ukbench)
 
 :sunflower: this system use first 2000 images of UKBench Dataset
 
+![UKBench Dataset](https://raw.githubusercontent.com/zpengc/image-retrieval-system-CBIR/12866f1b47c138ed4a6eba9b462e3102417597c7/images/Examples-of-the-images-in-the-UkBench-dataset-The-datasets-consists-of-groups-of-four_W640.jpg)
 
+This Dataset has 2550 groups each of which has 4 images and anyone of such 4 images can be input as query image. The correct result should be 4 images in the same group.
 
 ## :pushpin:Project Structure
 
@@ -51,11 +53,11 @@ UKBench DataSet [click here to download](https://archive.org/details/ukbench)
 
 ```index page```
 
-
+![](https://raw.githubusercontent.com/zpengc/image-retrieval-system-CBIR/main/images/Snipaste_2021-05-12_19-04-29.png)
 
 ```result page```
 
-
+![](https://raw.githubusercontent.com/zpengc/image-retrieval-system-CBIR/main/images/Snipaste_2021-05-20_13-06-23.png)
 
 
 
