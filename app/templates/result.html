@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}结果页{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+<!--adding css-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/result.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="image-wrapper">
+        <div class="image-target">
+            <img src="{{ url_for('static', filename='uploads/') }}{{ filename }}">
+            <div class="image-info">查询图片</div>
+        </div>
+    {% if images %}
+        <div class="image-tip">
+            <span>检索结果：(按相似度排序)</span>
+        </div>
+        <div class="image-grid">
+        {% for image in images %}
+            <div class="image-item">
+                <img src="{{ url_for('main.expose_file', file_dir=image) }}">
+                <div class="image-overlay"></div>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <h1>没有类似图片</h1>
+    {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/result.js') }}"></script>
+{% endblock %}

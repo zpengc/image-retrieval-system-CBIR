@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}首页{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+<!--adding css-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="forms">
+<!--            image-->
+            <form id="imgform" method="POST" enctype="multipart/form-data" name="imgform">
+                <label for="fileimg" id="upload">Upload</label>
+                <input type="file" name="fileimg" id="fileimg">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            </form>
+
+<!--            image url-->
+            <form id="urlform" method="POST" enctype="multipart/form-data" name="urlform">
+                <input type="text" id="txturl" name="txturl" placeholder="Paste or enter image URL" autocomplete="off" maxlength="100000">
+                <input type="button" id="btnsubmit" name="btnsubmit">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            </form>
+<!--            清空图像url输入框按钮-->
+<!--            <input type="button" id="btnclose" name="btnclose">-->
+        </div>
+
+        <div class="dragtip" id="dragtip">拖拽图像到此处</div>
+<!--        隐藏内容-->
+        <div class="dropzone" id="dropzone" style="display:none;">
+            <span>拖拽图像到此处</span>
+<!--            左上角区域-->
+            <div class="dropfocus focus_top_left"></div>
+<!--            左下角区域-->
+            <div class="dropfocus focus_bottom_left"></div>
+<!--            右上角区域-->
+            <div class="dropfocus focus_top_right"></div>
+<!--            右下角区域-->
+            <div class="dropfocus focus_bottom_right"></div>
+        </div>
+
+<!--        隐藏内容-->
+        <div class="uploadtip" id="uploadtip" style="display:none;">
+            <img src="{{ url_for('static', filename='img/waiting.gif') }}">
+            <span>during retrieving, please wait...</span>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
+<!--To render the contents of a block defined in the parent template, use {{ super() }}.-->

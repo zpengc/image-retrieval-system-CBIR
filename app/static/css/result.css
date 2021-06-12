@@ -1,0 +1,93 @@
+html, body, .wrapper {
+    min-height: 100vh;
+    height: auto;
+}
+
+body {
+    display: none;
+}
+
+.image-wrapper {
+    margin: 20px;
+    min-width: 400px;
+}
+
+.image-target {
+
+}
+
+.image-target img {
+    height: 100px;
+}
+
+/*查询图像*/
+.image-target .image-info {
+    display: inline-block;
+    margin-left: 20px;
+    color: white;
+    vertical-align: bottom;
+    font-size: 20px;
+}
+
+/*检索结果：(按相似度排序)*/
+.image-tip {
+    color: white;
+    font-size: 20px;
+    line-height: 40px;
+}
+
+/*检索结果：(按相似度排序)*/
+.image-tip span {
+
+}
+
+.image-grid {
+    display: flex;
+    display: -webkit-flex;
+    overflow: hidden;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    max-height: 100%;
+}
+
+/*结果页中检索出的每个图像的样式*/
+.image-grid img {
+    flex: 1 1 auto;
+    min-width: 100%;
+    max-width: 100%;
+    height: 150px;
+    vertical-align: middle;
+    object-fit: cover;
+}
+
+/*插入一些东西在元素内容之后*/
+.image-grid::after {
+
+}
+
+/*结果页中检索出的每个图像的样式*/
+.image-grid .image-item {
+    position: relative;
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+/*结果页中检索出的每个图像的尺寸信息样式*/
+.image-item .image-overlay {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /*灰色背景*/
+    color: red;
+    text-align: center;
+    font-size: small;
+    /*尺寸信息隐藏*/
+    opacity: 0;
+    background-color: black;
+}
+
+/*当鼠标悬浮到上面改变样式*/
+.image-item:hover .image-overlay {
+    /*尺寸信息显示*/
+    opacity: 1;
+}
