@@ -7,6 +7,8 @@ from flask import request
 from flask import send_from_directory
 from flask import url_for
 from werkzeug.utils import secure_filename
+
+import config
 from utils import download
 from . import main
 from .. import bof
@@ -24,7 +26,8 @@ def index():
     if imgform.validate_on_submit():
         file = imgform.fileimg.data
         filename = secure_filename(file.filename)
-        filepath = os.path.join(current_app.config['UPLOAD_DIR'], filename)
+        # 用户上传文件路径
+        filepath = os.path.join(config.UPLOAD_DIR, filename)
         if not os.path.exists(filepath):
             file.save(filepath)
         # In case blueprints are active you can shortcut references to the same
@@ -36,7 +39,7 @@ def index():
         # filename, like Thinking-of-getting-a-cat.png
         filename = secure_filename(url.split('/')[-1])
         # E:\cbir_system\app/static/uploads\Thinking-of-getting-a-cat.png
-        filepath = os.path.join(current_app.config['UPLOAD_DIR'], filename)
+        filepath = os.path.join(config.UPLOAD_DIR, filename)
         # download(url, current_app.config['UPLOAD_DIR'], filename)
         download_image_url(url, filepath)
         if not os.path.exists(filepath):
@@ -50,8 +53,8 @@ def index():
 @main.route('/result', methods=['GET'])
 def result():
     filename = request.args.get('filename')
-    uri = os.path.join(current_app.config['UPLOAD_DIR'], filename)
-    # images = bof.match(uri, top_k=20)
+    uri = os.path.join(config.UPLOAD_DIR, filename)
+    # 只匹配前10张图像
     images = bof.match(uri, top_k=10)
     return render_template('result.html', filename=filename, images=images)
 
@@ -68,4 +71,4 @@ def result():
 @main.route('/images/<path:file_dir>')
 def expose_file(file_dir):
     print("显示图像：" + file_dir)
-    return send_from_directory(current_app.config['BASE_DIR'], file_dir, as_attachment=True)
+    return send_from_directory(config.ROOT_DIR, file_dir, as_attachment=True)

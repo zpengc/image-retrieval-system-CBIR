@@ -1,4 +1,3 @@
-from os import urandom
 import zipfile
 import posixpath
 from urllib.error import HTTPError, URLError
@@ -8,18 +7,16 @@ import re
 import cv2
 import numpy as np
 import os
-from PIL import Image
-import os
 import glob
 
 
 def download(root, zip_file, url):
-    print("start downloading dataset...")
+    print("开始尝试下载数据集")
     path = os.path.join(root, zip_file)
     if not os.path.exists(root):
         os.mkdir(root)
     if os.path.exists(path):
-        print("dataset exits!!! no need to download again")
+        print("数据集已经存在，不需要下载")
     else:
         print("Downloading %s to %s" % (url, path))
         err_msg = "URL fetch failure on {}: {} -- {}"
@@ -58,35 +55,21 @@ def download_image_url(url, filepath):
     request.urlretrieve(url, filepath)
 
 
-# produce 32-byte secrete key
-# Bytes literals are always prefixed with 'b' or 'B'; they produce an instance of the
-# bytes type instead of the str type. They may only contain ASCII characters; bytes with a numeric value of 128 or
-# greater must be expressed with escapes.
-# for example:b'\xd5\x95\n\xfc\xbb:O!e\xa5\xd4$:\xcf\xb4\x8c\xef\x01\xda\x06\xd4\x94A\xf5\xe6O\xb4V\x87\xa3\xdb\xbd'
-def get_secrete_key():
-    return urandom(32)
-
-
 def get_id_of_image(pathname):
     return int(re.search(r'\d+', pathname).group(0))
 
 
-# Hamming distance is a metric for comparing two binary data strings.
+# 计算二进制签名的汉明距离
 def get_hamming_distance(sig_q, sig_t):
     return bin(sig_q ^ sig_t).count("1")
 
 
-# No matter if you are using SIFT to match key_points, form cluster centers using k-means,
-# or quantize SIFT descriptors to form a bag of visual words,
-# you should definitely consider utilizing RootSIFT
-# rather than the original SIFT to improve your object retrieval accuracy.
+# https://pyimagesearch.com/2015/04/13/implementing-rootsift-in-python-and-opencv/
 def compute_root_sift(descriptors, eps=1e-7):
     if descriptors is not None:
-        # L1-normalize each SIFT vector
+        # L1正则化
         descriptors /= (descriptors.sum(axis=1, keepdims=True) + eps)
-        # Take the square root of each element in the SIFT vector. square root of the sum of all elements is just
-        # L2-normalized a square root (Hellinger) kernel instead of the standard Euclidean distance to measure the
-        # similarity between SIFT descriptors leads to a dramatic performance boost in all stages of the pipeline.
+        # L2正则化
         descriptors = np.sqrt(descriptors)
     return descriptors
 
@@ -135,55 +118,76 @@ def fresh_file(filepath):
         os.remove(f)
 
 
-# calculate average precision
+# 计算AP
 def get_average_precision(query_image, ret):
+    # 查询图像的id
     query_image_id = get_id_of_image(query_image)
     # [start, end) is the same group
     start_id = query_image_id - query_image_id % 4
     end_id = start_id + 4
+    # 结果集中图像id
     ids = [get_id_of_image(img) for img in ret]
     precision_at_k = [0] * len(ids)
+    # 预测正确的 TP
     positives = 0
     for i, index in enumerate(ids):
+        # 同一组的
         if start_id <= index < end_id:
+            # TP+1，TP表示我们预测是positive，同时该样本标签是true
             positives += 1
             # i+1表示检索出的图像个数
             precision_at_k[i] = positives / (i + 1)
     return sum(precision_at_k) / positives
 
 
-# 对于UKBench数据集，看一看前四个图像中多少个是相关的
+# 计算结果集中前四个图像中是同一组的个数
 def get_performance_in_the_group(query_image, ret):
+    # 分割出图像id，只适用于ukbench数据集
     query_image_id = get_id_of_image(query_image)
     # [start, end) is the same group
     start_id = query_image_id - query_image_id % 4
     end_id = start_id + 4
+    # 获取结果集中所有图像的id
     ids = [get_id_of_image(img) for img in ret]
+    # 取前4幅图像
     ids = ids[:4]
+    # 计数器
     count = 0
+    # 遍历前4幅图像
     for i, index in enumerate(ids):
+        # 是同一组的
         if start_id <= index < end_id:
+            # 计数器+1
             count += 1
     return count
 
 
+# 关注前4个，表示预测完全正确时候的个数
 def get_recall(query_image, ret):
     return get_true_positives(query_image, ret) / 4
 
 
+# 关注整个结果集
 def get_precision(query_image, ret):
     return get_true_positives(query_image, ret) / len(ret)
 
 
+# 计算结果集中有多少个是同一组的
 def get_true_positives(query_image, ret):
+    # 获取查询图像id
     query_image_id = get_id_of_image(query_image)
     # [start, end) is the same group
     start_id = query_image_id - query_image_id % 4
     end_id = start_id + 4
+    # 结果集中图像id
     ids = [get_id_of_image(img) for img in ret]
+    # 计算器
     count = 0
+    # 遍历结果集
     for i, index in enumerate(ids):
+        # 同一组
         if start_id <= index < end_id:
+            # 计数器+1
             count += 1
     return count
 
@@ -193,30 +197,6 @@ def moving_average(hist, window):
     cumulative_sum = np.cumsum(np.insert(hist, 0, 0))
     # everything except the last window items
     return (cumulative_sum[window:] - cumulative_sum[:-window]) / float(window)
-
-
-def resize_image(dir_path, width, height):
-    dirs = os.listdir(dir_path)
-    for item in dirs:
-        if os.path.isfile(os.path.join(dir_path, item)):
-            image = Image.open(os.path.join(dir_path, item))
-            root, ext = os.path.splitext(os.path.join(dir_path, item))
-            resized_image = image.resize((width, height), Image.ANTIALIAS)
-            # resized_image.save(root + ' resized.jpg', 'JPEG', quality=90, subsampling=0)
-            resized_image.save(root + '.jpg', 'JPEG', quality=95, subsampling=0)
-
-
-def rename_files_in_dir(dir_path):
-    for count, filename in enumerate(os.listdir(dir_path)):
-        dst = str(count) + ".jpg"
-        src = os.path.join(dir_path, filename)
-        dst = os.path.join(dir_path, dst)
-        os.rename(src, dst)
-
-
-def get_image_size(image_path):
-    image = Image.open(image_path)
-    return image.size
 
 
 # wrap angle to [-pi, pi]

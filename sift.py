@@ -1,17 +1,11 @@
-# scale invariant feature transformation
-
 import os
-# pickle module implements binary protocols for serializing and de-serializing python objects
-# pickle is not human readable but faster
 import pickle
 import numpy as np
-import matplotlib
-# opencv-python 是只包含了主要模块的包，opencv-contrib-python包含了主要模块以及扩展模块，扩展模块主要是包含了一些带专利的收费算法（如shift
-# 特征检测）以及一些在测试的新的算法（稳定后会合并到主要模块）。
 import cv2
 from matplotlib import pyplot as plt
 from matplotlib.patches import ConnectionPatch
 import logging
+import config
 from utils import compute_root_sift
 from deprecated import deprecated
 from config import MIN_MATCH_COUNT
@@ -19,17 +13,22 @@ from config import MIN_MATCH_COUNT
 
 class SIFT:
 
-    def __init__(self, root):
-        logging.basicConfig(filename="D:\\projects\\python\\cbir_system\\logging", format='%(asctime)s - %(message)s',
+    def __init__(self):
+        # 日志配置
+        logging.basicConfig(filename=config.LOGGING_PATH, format='%(asctime)s - %(message)s',
                             level=logging.INFO)
-        self.path = os.path.join(root, 'sift')
-        self.extractor = cv2.xfeatures2d.SIFT_create()
+        # 特征描述符存储路径
+        self.path = os.path.join(config.DATA_DIR, 'sift')
+        self.sift = cv2.SIFT_create()
+        # 图像编号
         self.index = 0
 
     def extract(self, gray, rootsift=True):
-        logging.info("detect key_points and calculate descriptors for image %d" % self.index)
+        if self.index % 100 == 0:
+            logging.info("计算图像 %d 的特征描述符" % self.index)
         self.index += 1
-        key_points, descriptors = self.extractor.detectAndCompute(gray, None)
+        # 直接一步 计算关键点和特征描述符
+        key_points, descriptors = self.sift.detectAndCompute(gray, None)
         if rootsift:
             descriptors = compute_root_sift(descriptors)
         return key_points, descriptors
@@ -77,14 +76,13 @@ class SIFT:
         plt.subplots_adjust(wspace=0, hspace=0)
         plt.show()
 
+    # 写入一个图像的关键点 和 特征描述符
     def write_features_to_pkl(self, kp, des, filename):
-        logging.info("write key_points and descriptors to the pkl file %s during starting process" % filename)
         attributes = [
             (kp.pt, kp.size, kp.angle, kp.response, kp.octave, kp.class_id)
             for kp in kp
         ]
         with open(os.path.join(self.path, filename), 'wb') as sift_pkl:
-            # pickle objects
             pickle.dump((attributes, des), sift_pkl)
 
     def read_features_from_pkl(self, filename):

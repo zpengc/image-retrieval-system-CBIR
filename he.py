@@ -1,9 +1,10 @@
-# hamming embedding
 import numpy as np
 from scipy.linalg import qr
 import logging
+import config
 
 
+# hamming embedding
 class HE:
 
     # for example: HE(64, 128, 5000)
@@ -18,7 +19,8 @@ class HE:
         self.P = self.Q[:db, :]
         # just new a 5000x64 median value matrix
         self.medians = np.zeros([self.k, db])
-        logging.basicConfig(filename="D:\\projects\\python\\cbir_system\\logging", format='%(asctime)s - %(message)s',
+        # 日志配置
+        logging.basicConfig(filename=config.LOGGING_PATH, format='%(asctime)s - %(message)s',
                             level=logging.INFO)
 
     # descriptor projection and assignment
@@ -35,19 +37,16 @@ class HE:
             self.medians[label] += prj
             freqs[label] += 1
         self.medians = [m / f for m, f in zip(self.medians, freqs)]
-        # logging.info(freqs)
-        # logging.info(self.medians)
 
-    # computing the signature
-    # after projection
+    # computing the signature after projection
     def compute_signature(self, prj, label):
         # signature = np.uint64()
         # 64-size True/False array
         bins = prj > self.medians[label]
         binary_list = np.multiply(bins, 1)
+        # 计算二进制签名
         signature = int("".join(str(x) for x in binary_list), 2)
         # all items in the bins, reversed
         # for i, b in enumerate(bins[::-1]):
         #     signature = np.bitwise_or(signature, np.uint64(2 ** i * b))
         return signature
-
